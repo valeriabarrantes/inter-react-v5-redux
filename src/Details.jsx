@@ -1,28 +1,27 @@
-import { useState, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import fetchPet from "./fetchPet";
-import Carousel from "./Carousel";
-import ErrorBoundary from "./ErrorBoundary";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { adopt } from "./adoptedPetSlice";
 import Modal from "./Modal";
-import AdoptedPetContext from "./AdoptedPetContext";
+import ErrorBoundary from "./ErrorBoundary";
+import Carousel from "./Carousel";
+import { useGetPetQuery } from "./petApiService";
 
 const Details = () => {
+  const { id } = useParams();
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
-  const [, setAdoptedPet] = useContext(AdoptedPetContext);
-  const { id } = useParams();
-  const results = useQuery(["details", id], fetchPet);
+  const dispatch = useDispatch();
 
-  if (results.isLoading) {
+  const { isLoading, data: pet } = useGetPetQuery(id);
+
+  if (isLoading) {
     return (
       <div className="loading-pane">
         <h2 className="loader">🌀</h2>
       </div>
     );
   }
-
-  const pet = results.data.pets[0];
 
   return (
     <div className="details">
@@ -35,11 +34,11 @@ const Details = () => {
         {showModal ? (
           <Modal>
             <div>
-              <h1>Would you like to adopt {pet.name}</h1>
+              <h1>Would you like to adopt {pet.name}?</h1>
               <div className="buttons">
                 <button
                   onClick={() => {
-                    setAdoptedPet(pet);
+                    dispatch(adopt(pet));
                     navigate("/");
                   }}
                 >
